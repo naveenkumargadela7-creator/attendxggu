@@ -3,180 +3,219 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
-import { Camera, LogOut, Users, ClipboardList, User } from "lucide-react";
+import { Camera, Users, Calendar, UserCircle, LogOut, Scan } from "lucide-react";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [userRole, setUserRole] = useState<string>("student");
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string>("");
+  const [studentData, setStudentData] = useState<any>(null);
 
   useEffect(() => {
     checkUser();
   }, []);
 
   const checkUser = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-
-      setUser(user);
-      setUserRole(user.user_metadata?.role || "student");
-    } catch (error) {
-      console.error("Error fetching user:", error);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       navigate("/auth");
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    setUser(user);
+
+    // Get user role
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+
+    setUserRole(roleData?.role || "");
+
+    // If student, get student data
+    if (roleData?.role === "student") {
+      const { data: studentInfo } = await supabase
+        .from("students")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      setStudentData(studentInfo);
+    }
+
+    setLoading(false);
   };
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success("Signed out successfully");
-      navigate("/auth");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign out");
-    }
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
 
+  const isAdmin = userRole === "admin";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <User className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="font-semibold">{user?.user_metadata?.name || "User"}</h2>
-              <p className="text-sm text-muted-foreground capitalize">{userRole}</p>
-            </div>
-          </div>
-          <Button onClick={handleSignOut} variant="outline" size="sm" className="gap-2">
-            <LogOut className="h-4 w-4" />
-            Sign Out
-          </Button>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">
-            Welcome back, {user?.user_metadata?.name?.split(" ")[0]}!
-          </h1>
-          <p className="text-muted-foreground">
-            {userRole === "admin" 
-              ? "Manage attendance and student records" 
-              : "View your attendance and profile"}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {userRole === "admin" && (
-            <>
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/take-attendance")}>
-                <CardHeader>
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-3">
-                    <Camera className="h-6 w-6 text-white" />
-                  </div>
-                  <CardTitle>Take Attendance</CardTitle>
-                  <CardDescription>
-                    Capture group photo to mark attendance
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/manage-students")}>
-                <CardHeader>
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-accent to-success flex items-center justify-center mb-3">
-                    <Users className="h-6 w-6 text-white" />
-                  </div>
-                  <CardTitle>Manage Students</CardTitle>
-                  <CardDescription>
-                    View and manage student records
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </>
-          )}
-
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/attendance-history")}>
-            <CardHeader>
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-warning to-destructive flex items-center justify-center mb-3">
-                <ClipboardList className="h-6 w-6 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <Card className="shadow-elegant border-primary/10">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-3xl flex items-center gap-3">
+                  <UserCircle className="h-8 w-8 text-primary" />
+                  {isAdmin ? "Admin Dashboard" : "Student Dashboard"}
+                </CardTitle>
+                <CardDescription className="mt-2">
+                  Welcome back, {isAdmin ? user?.email : studentData?.name || user?.email}
+                  {!isAdmin && studentData && (
+                    <span className="block text-sm mt-1">
+                      Roll: {studentData.roll_number} | Class: {studentData.class}
+                    </span>
+                  )}
+                </CardDescription>
               </div>
-              <CardTitle>Attendance History</CardTitle>
-              <CardDescription>
-                {userRole === "admin" ? "View all attendance records" : "View your attendance"}
-              </CardDescription>
-            </CardHeader>
-          </Card>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </CardHeader>
+        </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/register-face")}>
-            <CardHeader>
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-secondary to-muted-foreground flex items-center justify-center mb-3">
-                <User className="h-6 w-6 text-white" />
-              </div>
-              <CardTitle>Update Face Data</CardTitle>
-              <CardDescription>
-                Re-register your face for better accuracy
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
+        {/* Action Cards */}
+        {isAdmin ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card
+              className="cursor-pointer hover:shadow-glow transition-all duration-300 border-primary/20 hover:border-primary/40"
+              onClick={() => navigate("/take-attendance")}
+            >
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <Camera className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Take Attendance</CardTitle>
+                    <CardDescription className="text-xs">Capture class photo</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
 
-        {/* Quick Stats */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Quick Stats</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-primary">-</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {userRole === "admin" ? "Total Students" : "Attendance Rate"}
-                  </p>
+            <Card
+              className="cursor-pointer hover:shadow-glow transition-all duration-300 border-primary/20 hover:border-primary/40"
+              onClick={() => navigate("/manage-students")}
+            >
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Manage Students</CardTitle>
+                    <CardDescription className="text-xs">View all students</CardDescription>
+                  </div>
                 </div>
-              </CardContent>
+              </CardHeader>
             </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-success">-</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {userRole === "admin" ? "Present Today" : "Days Present"}
-                  </p>
+
+            <Card
+              className="cursor-pointer hover:shadow-glow transition-all duration-300 border-primary/20 hover:border-primary/40"
+              onClick={() => navigate("/attendance-history")}
+            >
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <Calendar className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Attendance History</CardTitle>
+                    <CardDescription className="text-xs">View all records</CardDescription>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-warning">-</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {userRole === "admin" ? "Absent Today" : "Days Absent"}
-                  </p>
-                </div>
-              </CardContent>
+              </CardHeader>
             </Card>
           </div>
-        </div>
-      </main>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card
+              className="cursor-pointer hover:shadow-glow transition-all duration-300 border-primary/20 hover:border-primary/40"
+              onClick={() => navigate("/register-face")}
+            >
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <Scan className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">
+                      {studentData?.face_registered ? "Update Face Data" : "Register Face"}
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      {studentData?.face_registered
+                        ? "Update your facial recognition data"
+                        : "Register your face for attendance"}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-glow transition-all duration-300 border-primary/20 hover:border-primary/40"
+              onClick={() => navigate("/attendance-history")}
+            >
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <Calendar className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">My Attendance</CardTitle>
+                    <CardDescription className="text-xs">View your attendance records</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          </div>
+        )}
+
+        {/* Info Card for Students */}
+        {!isAdmin && studentData && (
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="text-4xl">{studentData.face_registered ? "✅" : "⚠️"}</div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">
+                    {studentData.face_registered
+                      ? "Face Registration Complete"
+                      : "Action Required: Register Your Face"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {studentData.face_registered
+                      ? "Your face data is registered. Your attendance can now be marked automatically."
+                      : "Please register your face to enable automatic attendance tracking. Click 'Register Face' above to get started."}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

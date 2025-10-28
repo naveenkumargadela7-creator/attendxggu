@@ -7,6 +7,9 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import RegisterFace from "./pages/RegisterFace";
+import TakeAttendance from "./pages/TakeAttendance";
+import ManageStudents from "./pages/ManageStudents";
+import AttendanceHistory from "./pages/AttendanceHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +25,9 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/register-face" element={<RegisterFace />} />
+          <Route path="/take-attendance" element={<TakeAttendance />} />
+          <Route path="/manage-students" element={<ManageStudents />} />
+          <Route path="/attendance-history" element={<AttendanceHistory />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
