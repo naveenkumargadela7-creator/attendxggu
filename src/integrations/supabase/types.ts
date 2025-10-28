@@ -14,16 +14,214 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance_records: {
+        Row: {
+          absent_students: string[] | null
+          class_id: string
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          photo_id: string
+          present_students: string[] | null
+          unknown_faces: Json | null
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          absent_students?: string[] | null
+          class_id: string
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          photo_id: string
+          present_students?: string[] | null
+          unknown_faces?: Json | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          absent_students?: string[] | null
+          class_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          photo_id?: string
+          present_students?: string[] | null
+          unknown_faces?: Json | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faces_data: {
+        Row: {
+          angle: string
+          confidence: number | null
+          created_at: string
+          embedding: number[]
+          id: string
+          photo_path: string
+          photo_url: string
+          student_id: string
+          user_id: string
+        }
+        Insert: {
+          angle: string
+          confidence?: number | null
+          created_at?: string
+          embedding: number[]
+          id?: string
+          photo_path: string
+          photo_url: string
+          student_id: string
+          user_id: string
+        }
+        Update: {
+          angle?: string
+          confidence?: number | null
+          created_at?: string
+          embedding?: number[]
+          id?: string
+          photo_path?: string
+          photo_url?: string
+          student_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faces_data_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photos: {
+        Row: {
+          analysis_status: string | null
+          class_id: string
+          created_at: string
+          error_message: string | null
+          faces_detected: number | null
+          id: string
+          low_confidence: boolean | null
+          storage_path: string
+          storage_url: string
+          taken_by: string
+        }
+        Insert: {
+          analysis_status?: string | null
+          class_id: string
+          created_at?: string
+          error_message?: string | null
+          faces_detected?: number | null
+          id?: string
+          low_confidence?: boolean | null
+          storage_path: string
+          storage_url: string
+          taken_by: string
+        }
+        Update: {
+          analysis_status?: string | null
+          class_id?: string
+          created_at?: string
+          error_message?: string | null
+          faces_detected?: number | null
+          id?: string
+          low_confidence?: boolean | null
+          storage_path?: string
+          storage_url?: string
+          taken_by?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          class: string
+          created_at: string
+          email: string
+          face_registered: boolean | null
+          id: string
+          name: string
+          roll_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          class: string
+          created_at?: string
+          email: string
+          face_registered?: boolean | null
+          id?: string
+          name: string
+          roll_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          class?: string
+          created_at?: string
+          email?: string
+          face_registered?: boolean | null
+          id?: string
+          name?: string
+          roll_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "student"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +348,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "student"],
+    },
   },
 } as const
