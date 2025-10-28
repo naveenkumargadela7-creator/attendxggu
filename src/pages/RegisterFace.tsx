@@ -96,7 +96,7 @@ export default function RegisterFace() {
 
       // TODO: Call AI backend to process faces and generate embeddings
       // For now, we'll just store the image references
-      const { error: dbError } = await supabase
+      const { error: dbError } = await (supabase as any)
         .from("faces_data")
         .insert(
           uploadedImages.map((img) => ({
