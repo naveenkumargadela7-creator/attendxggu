@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera } from "@/components/ui/camera";
 import { toast } from "sonner";
 import { Camera as CameraIcon, TickCircle, User } from "iconsax-react";
 import { detectFaceAndGetDescriptor, blobToImageElement } from "@/utils/faceDetection";
+import { GuidedFaceCapture, type CaptureAngle as GuidedAngle } from "@/components/face/GuidedFaceCapture";
 
 type CaptureAngle = "front" | "left" | "right" | "tilt";
 
@@ -20,7 +20,7 @@ interface CaptureStatus {
 export default function RegisterFace() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [showCamera, setShowCamera] = useState(false);
+  const [showGuided, setShowGuided] = useState(false);
   const [currentAngle, setCurrentAngle] = useState<CaptureAngle>("front");
   const [uploading, setUploading] = useState(false);
   const [captures, setCaptures] = useState<CaptureStatus[]>([
@@ -43,19 +43,15 @@ export default function RegisterFace() {
     }
   };
 
-  const handleCapture = (blob: Blob) => {
-    setCaptures((prev) =>
-      prev.map((c) =>
-        c.angle === currentAngle ? { ...c, captured: true, blob } : c
-      )
-    );
-    setShowCamera(false);
-    toast.success(`${captures.find(c => c.angle === currentAngle)?.label} captured!`);
+  const handleGuidedComplete = (map: Record<GuidedAngle, Blob>) => {
+    setCaptures((prev) => prev.map((c) => ({ ...c, captured: true, blob: map[c.angle as GuidedAngle] })));
+    setShowGuided(false);
+    toast.success("All angles captured!");
   };
 
   const openCamera = (angle: CaptureAngle) => {
     setCurrentAngle(angle);
-    setShowCamera(true);
+    setShowGuided(true);
   };
 
   const handleSubmit = async () => {
@@ -253,10 +249,10 @@ export default function RegisterFace() {
         </div>
       </div>
 
-      {showCamera && (
-        <Camera
-          onCapture={handleCapture}
-          onClose={() => setShowCamera(false)}
+      {showGuided && (
+        <GuidedFaceCapture
+          onComplete={handleGuidedComplete}
+          onClose={() => setShowGuided(false)}
         />
       )}
     </div>

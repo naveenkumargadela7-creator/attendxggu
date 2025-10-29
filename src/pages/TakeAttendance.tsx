@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Camera } from "@/components/ui/camera";
 import { ArrowLeft, Camera as CameraIcon, DocumentUpload } from "iconsax-react";
 import { toast } from "sonner";
+import { detectAllFacesAndGetDescriptors, blobToImageElement } from "@/utils/faceDetection";
 
 export default function TakeAttendance() {
   const navigate = useNavigate();
@@ -103,7 +104,10 @@ export default function TakeAttendance() {
 
       if (photoError) throw photoError;
 
-      toast.success("Photo uploaded! Processing attendance...");
+      // Prepare face descriptors from the photo for matching
+      const imgEl = await blobToImageElement(capturedPhoto);
+      const descs = await detectAllFacesAndGetDescriptors(imgEl);
+      const descriptorPayload = descs.map((d) => Array.from(d));
 
       // Call the edge function to process attendance
       const { data: processData, error: processError } = await supabase.functions.invoke(
@@ -112,6 +116,7 @@ export default function TakeAttendance() {
           body: {
             photoId: photoData.id,
             classId: classId,
+            descriptors: descriptorPayload,
           }
         }
       );
@@ -123,7 +128,42 @@ export default function TakeAttendance() {
 
       console.log('Processing result:', processData);
 
-      toast.success("Attendance recorded successfully!");
+      // Wait until processing completes so we don't show "pending" to the user
+      const waitUntil = Date.now() + 60_000; // 60s timeout
+      let status = 'pending';
+      while (Date.now() < waitUntil) {
+        const { data: photoRow } = await supabase
+          .from('photos')
+          .select('analysis_status')
+          .eq('id', photoData.id)
+          .single();
+        status = photoRow?.analysis_status ?? 'pending';
+        if (status === 'completed' || status === 'failed') break;
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+
+      if (status === 'failed') {
+        toast.error('Processing failed. Please try again.');
+        return;
+      }
+
+      // Fetch the attendance record for this photo
+      const { data: recs } = await supabase
+        .from('attendance_records')
+        .select('*')
+        .eq('photo_id', photoData.id)
+        .limit(1);
+
+      const rec = recs?.[0];
+      if (rec) {
+        const present = rec.present_students?.length || 0;
+        const absent = rec.absent_students?.length || 0;
+        const unknown = (rec.unknown_faces as any[])?.length || 0;
+        toast.success(`Attendance ready: Present ${present}, Absent ${absent}, Unknown ${unknown}`);
+      } else {
+        toast.message('No attendance record found, but processing finished.');
+      }
+
       navigate("/attendance-history");
     } catch (error: any) {
       console.error("Error:", error);

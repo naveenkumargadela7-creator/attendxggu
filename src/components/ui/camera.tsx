@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback } from "react";
 import { Button } from "./button";
-import { Camera as CameraIcon, RotateCcw, X } from "lucide-react";
+import { Camera as CameraIcon } from "iconsax-react";
+import { RotateLeft, CloseCircle } from "iconsax-react";
 import { cn } from "@/lib/utils";
 
 interface CameraProps {
@@ -71,7 +72,7 @@ export function Camera({ onCapture, onClose, className }: CameraProps) {
       <div className="flex items-center justify-between p-4 bg-card/10 backdrop-blur-sm">
         <h2 className="text-lg font-semibold text-white">Capture Photo</h2>
         <Button variant="ghost" size="icon" onClick={handleClose}>
-          <X className="h-5 w-5 text-white" />
+          <CloseCircle size={18} className="text-white" />
         </Button>
       </div>
 
@@ -112,7 +113,7 @@ export function Camera({ onCapture, onClose, className }: CameraProps) {
               size="lg"
               className="gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20"
             >
-              <RotateCcw className="h-5 w-5" />
+              <RotateLeft size={18} />
               Reset
             </Button>
           </div>

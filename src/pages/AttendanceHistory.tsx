@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, ArrowLeft, Download } from "lucide-react";
+import { Calendar, ArrowLeft2, Export } from "iconsax-react";
 import { toast } from "sonner";
 
 type AttendanceRecord = {
@@ -148,7 +148,7 @@ export default function AttendanceHistory() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft2 className="mr-2 h-4 w-4" />
             Back
           </Button>
         </div>
@@ -158,7 +158,7 @@ export default function AttendanceHistory() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2 text-2xl">
-                  <Calendar className="h-6 w-6 text-primary" />
+                  <Calendar size={20} className="text-primary" />
                   Attendance History
                 </CardTitle>
                 <CardDescription>
@@ -166,7 +166,7 @@ export default function AttendanceHistory() {
                 </CardDescription>
               </div>
               <Button onClick={exportToCSV} variant="outline">
-                <Download className="mr-2 h-4 w-4" />
+                <Export className="mr-2 h-4 w-4" />
                 Export CSV
               </Button>
             </div>
@@ -174,7 +174,7 @@ export default function AttendanceHistory() {
           <CardContent>
             {records.length === 0 ? (
               <div className="text-center py-12">
-                <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <Calendar size={48} className="text-muted-foreground mx-auto mb-4 opacity-50" />
                 <p className="text-muted-foreground text-lg">No attendance records found</p>
               </div>
             ) : (

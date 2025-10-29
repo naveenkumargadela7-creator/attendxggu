@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { photoId, classId } = await req.json();
-    console.log('Processing attendance for photo:', photoId, 'class:', classId);
+    const { photoId, classId, descriptors } = await req.json();
+    console.log('Processing attendance for photo:', photoId, 'class:', classId, 'descriptors:', Array.isArray(descriptors) ? descriptors.length : 0);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -52,22 +52,58 @@ serve(async (req) => {
 
     console.log(`Found ${facesData?.length || 0} face records`);
 
-    // For now, we'll simulate face recognition
-    // In a real implementation, you would:
-    // 1. Download the group photo
-    // 2. Detect all faces in it
-    // 3. Compare with stored face embeddings
-    // 4. Match students based on similarity threshold
+    // Match provided face descriptors from client against known embeddings in DB
+    const inputDescriptors: number[][] = Array.isArray(descriptors) ? descriptors : [];
 
-    // Simulate: Mark random students as present (50% chance)
-    const presentStudents = students
-      ?.filter(() => Math.random() > 0.5)
-      .map(s => s.user_id) || [];
-    
+    // Build lookup of embeddings by user
+    const byUser: Record<string, number[][]> = {};
+    for (const f of (facesData || [])) {
+      const uid = (f as any).user_id as string;
+      const emb = (f as any).embedding as number[];
+      if (!byUser[uid]) byUser[uid] = [];
+      if (Array.isArray(emb) && emb.length) byUser[uid].push(emb);
+    }
+
+    const dist = (a: number[], b: number[]) => {
+      let s = 0;
+      const len = Math.min(a.length, b.length);
+      for (let i = 0; i < len; i++) {
+        const d = a[i] - b[i];
+        s += d * d;
+      }
+      return Math.sqrt(s);
+    };
+
+    const THRESHOLD = 0.6;
+    const presentSet = new Set<string>();
+    const unknownFaces: any[] = [];
+
+    if (inputDescriptors.length === 0) {
+      console.log('No descriptors provided by client; marking all as unknown if any students exist');
+    }
+
+    for (let i = 0; i < inputDescriptors.length; i++) {
+      const desc = inputDescriptors[i];
+      let bestUid: string | null = null;
+      let best = Number.POSITIVE_INFINITY;
+      for (const [uid, embs] of Object.entries(byUser)) {
+        for (const e of embs) {
+          const d = dist(desc, e);
+          if (d < best) { best = d; bestUid = uid; }
+        }
+      }
+      if (bestUid && best < THRESHOLD) {
+        presentSet.add(bestUid);
+      } else {
+        unknownFaces.push({ index: i, bestDistance: isFinite(best) ? best : null });
+      }
+    }
+
+    const presentStudents = Array.from(presentSet);
     const allStudentIds = students?.map(s => s.user_id) || [];
-    const absentStudents = allStudentIds.filter(id => !presentStudents.includes(id));
+    const absentStudents = allStudentIds.filter(id => !presentSet.has(id));
 
-    console.log(`Present: ${presentStudents.length}, Absent: ${absentStudents.length}`);
+    console.log(`Present: ${presentStudents.length}, Absent: ${absentStudents.length}, Unknown: ${unknownFaces.length}`);
 
     // Create attendance record
     const { error: attendanceError } = await supabase
@@ -77,7 +113,7 @@ serve(async (req) => {
         class_id: classId,
         present_students: presentStudents,
         absent_students: absentStudents,
-        unknown_faces: [],
+        unknown_faces: unknownFaces,
       });
 
     if (attendanceError) {
@@ -90,7 +126,7 @@ serve(async (req) => {
       .from('photos')
       .update({ 
         analysis_status: 'completed',
-        faces_detected: presentStudents.length 
+        faces_detected: inputDescriptors.length 
       })
       .eq('id', photoId);
 
