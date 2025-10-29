@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { UserCircle, GraduationCap } from "lucide-react";
+import { Teacher } from "iconsax-react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -82,11 +82,13 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 via-background to-accent/10">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent mb-4">
-            <GraduationCap className="h-8 w-8 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-hero mb-4 shadow-glow">
+            <span className="text-white font-bold text-3xl">AX</span>
           </div>
-          <h1 className="text-3xl font-bold mb-2">Smart Attendance</h1>
-          <p className="text-muted-foreground">AI-powered face recognition system</p>
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
+            AttendX
+          </h1>
+          <p className="text-muted-foreground text-lg">AI-powered attendance tracking</p>
         </div>
 
         <Tabs defaultValue="signin" className="w-full">

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Camera } from "@/components/ui/camera";
-import { ArrowLeft, Camera as CameraIcon, Upload } from "lucide-react";
+import { ArrowLeft, Camera as CameraIcon, DocumentUpload } from "iconsax-react";
 import { toast } from "sonner";
 
 export default function TakeAttendance() {
@@ -103,42 +103,25 @@ export default function TakeAttendance() {
 
       if (photoError) throw photoError;
 
-      toast.success("Photo uploaded successfully! Processing attendance...");
+      toast.success("Photo uploaded! Processing attendance...");
 
-      // TODO: Here you would call your Python FastAPI backend to process the image
-      // For now, we'll create a placeholder attendance record
-      // Example API call:
-      // const response = await fetch(`${AI_API_URL}/api/detect_group`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${session.access_token}`
-      //   },
-      //   body: JSON.stringify({
-      //     imageUrl: urlData.publicUrl,
-      //     classId: classId,
-      //     photoId: photoData.id
-      //   })
-      // });
+      // Call the edge function to process attendance
+      const { data: processData, error: processError } = await supabase.functions.invoke(
+        'process-attendance',
+        {
+          body: {
+            photoId: photoData.id,
+            classId: classId,
+          }
+        }
+      );
 
-      // Create placeholder attendance record
-      const { error: attendanceError } = await supabase
-        .from("attendance_records")
-        .insert({
-          photo_id: photoData.id,
-          class_id: classId,
-          present_students: [],
-          absent_students: [],
-          unknown_faces: []
-        });
+      if (processError) {
+        console.error('Processing error:', processError);
+        throw new Error('Failed to process attendance: ' + processError.message);
+      }
 
-      if (attendanceError) throw attendanceError;
-
-      // Update photo status
-      await supabase
-        .from("photos")
-        .update({ analysis_status: "completed" })
-        .eq("id", photoData.id);
+      console.log('Processing result:', processData);
 
       toast.success("Attendance recorded successfully!");
       navigate("/attendance-history");
@@ -229,7 +212,7 @@ export default function TakeAttendance() {
 
                   <label htmlFor="file-upload">
                     <div className="h-32 flex flex-col gap-2 items-center justify-center border-2 border-dashed rounded-md cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
-                      <Upload className="h-8 w-8 text-primary" />
+                      <DocumentUpload size={32} className="text-primary" />
                       <span className="font-semibold">Upload Photo</span>
                     </div>
                     <input

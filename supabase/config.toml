@@ -1,1 +1,4 @@
 project_id = "plxrmxzxywaucdvtazmw"
+
+[functions.process-attendance]
+verify_jwt = true

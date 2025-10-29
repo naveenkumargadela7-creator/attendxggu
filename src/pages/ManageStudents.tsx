@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, Search, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, People, SearchNormal, TickCircle, CloseCircle } from "iconsax-react";
 import { toast } from "sonner";
 
 type Student = {
@@ -113,8 +113,8 @@ export default function ManageStudents() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+          <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2">
+            <ArrowLeft size={18} />
             Back
           </Button>
         </div>
@@ -124,7 +124,7 @@ export default function ManageStudents() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <CardTitle className="flex items-center gap-2 text-2xl">
-                  <Users className="h-6 w-6 text-primary" />
+                  <People size={28} variant="Bold" className="text-primary" />
                   Manage Students
                 </CardTitle>
                 <CardDescription>
@@ -132,7 +132,7 @@ export default function ManageStudents() {
                 </CardDescription>
               </div>
               <div className="relative w-full md:w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <SearchNormal size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search by name, roll, email, or class..."
                   value={searchQuery}
@@ -145,7 +145,7 @@ export default function ManageStudents() {
           <CardContent>
             {filteredStudents.length === 0 ? (
               <div className="text-center py-12">
-                <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <People size={64} variant="Bulk" className="text-muted-foreground mx-auto mb-4 opacity-50" />
                 <p className="text-muted-foreground text-lg">
                   {searchQuery ? "No students found matching your search" : "No students registered yet"}
                 </p>
@@ -198,13 +198,13 @@ export default function ManageStudents() {
                           <TableCell className="text-center">
                             {student.face_registered ? (
                               <div className="flex items-center justify-center gap-1 text-success">
-                                <CheckCircle className="h-4 w-4" />
-                                <span className="text-sm">Registered</span>
+                                <TickCircle size={18} variant="Bold" />
+                                <span className="text-sm font-medium">Registered</span>
                               </div>
                             ) : (
                               <div className="flex items-center justify-center gap-1 text-warning">
-                                <XCircle className="h-4 w-4" />
-                                <span className="text-sm">Pending</span>
+                                <CloseCircle size={18} variant="Bold" />
+                                <span className="text-sm font-medium">Pending</span>
                               </div>
                             )}
                           </TableCell>

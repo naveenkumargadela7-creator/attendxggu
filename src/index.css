@@ -8,26 +8,26 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 220 25% 98%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 98%;
+    --foreground: 217 19% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 217 19% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 217 19% 12%;
 
-    --primary: 239 84% 48%;
+    --primary: 217 91% 52%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 239 84% 65%;
+    --primary-glow: 217 91% 65%;
 
     --secondary: 217 33% 17%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 210 17% 95%;
+    --muted-foreground: 217 10% 48%;
 
-    --accent: 174 72% 48%;
+    --accent: 27 96% 55%;
     --accent-foreground: 0 0% 100%;
 
     --success: 142 71% 45%;
@@ -39,20 +39,21 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 239 84% 48%;
+    --border: 217 20% 90%;
+    --input: 217 20% 90%;
+    --ring: 217 91% 52%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(239 84% 48%), hsl(239 84% 65%));
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 60%));
-    --gradient-hero: linear-gradient(135deg, hsl(239 84% 48%) 0%, hsl(174 72% 48%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 52%), hsl(217 91% 65%));
+    --gradient-accent: linear-gradient(135deg, hsl(27 96% 55%), hsl(27 96% 68%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 52%) 0%, hsl(27 96% 55%) 100%);
     
-    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1);
-    --shadow-glow: 0 0 20px hsl(239 84% 48% / 0.3);
+    --shadow-sm: 0 1px 2px 0 hsl(217 19% 12% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(217 19% 12% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(217 19% 12% / 0.1);
+    --shadow-elegant: 0 8px 20px -4px hsl(217 91% 52% / 0.2);
+    --shadow-glow: 0 0 25px hsl(217 91% 52% / 0.4);
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -74,26 +75,26 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222 47% 7%;
-    --foreground: 220 25% 98%;
+    --background: 217 19% 8%;
+    --foreground: 0 0% 98%;
 
-    --card: 222 47% 11%;
-    --card-foreground: 220 25% 98%;
+    --card: 217 19% 12%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 220 25% 98%;
+    --popover: 217 19% 12%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 239 84% 60%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 239 84% 75%;
+    --primary-glow: 217 91% 75%;
 
     --secondary: 217 33% 25%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 217 33% 17%;
-    --muted-foreground: 220 9% 65%;
+    --muted-foreground: 217 10% 65%;
 
-    --accent: 174 72% 55%;
+    --accent: 27 96% 60%;
     --accent-foreground: 0 0% 100%;
 
     --success: 142 71% 50%;
@@ -107,9 +108,10 @@ All colors MUST be HSL.
 
     --border: 217 33% 22%;
     --input: 217 33% 22%;
-    --ring: 239 84% 60%;
+    --ring: 217 91% 60%;
     
-    --shadow-glow: 0 0 30px hsl(239 84% 48% / 0.4);
+    --shadow-elegant: 0 8px 20px -4px hsl(217 91% 60% / 0.3);
+    --shadow-glow: 0 0 35px hsl(217 91% 60% / 0.5);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -127,6 +129,30 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .bg-gradient-accent {
+    background: var(--gradient-accent);
+  }
+  
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
   }
 }

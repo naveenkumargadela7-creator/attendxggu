@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera } from "@/components/ui/camera";
 import { toast } from "sonner";
-import { Camera as CameraIcon, Check, User } from "lucide-react";
+import { Camera as CameraIcon, TickCircle, User } from "iconsax-react";
+import { detectFaceAndGetDescriptor, blobToImageElement } from "@/utils/faceDetection";
 
 type CaptureAngle = "front" | "left" | "right" | "tilt";
 
@@ -94,19 +95,64 @@ export default function RegisterFace() {
 
       const uploadedImages = await Promise.all(uploadPromises);
 
-      // TODO: Call AI backend to process faces and generate embeddings
-      // For now, we'll just store the image references
+      // Process each image to extract face embeddings
+      console.log('Extracting face embeddings...');
+      const faceDataPromises = uploadedImages.map(async (img) => {
+        if (!img) return null;
+        
+        try {
+          // Fetch the uploaded image
+          const response = await fetch(img.url);
+          const blob = await response.blob();
+          const imageElement = await blobToImageElement(blob);
+          
+          // Extract face descriptor (embedding)
+          const descriptor = await detectFaceAndGetDescriptor(imageElement);
+          
+          if (!descriptor) {
+            console.warn(`No face detected in ${img.angle} angle`);
+            return null;
+          }
+          
+          return {
+            user_id: user.id,
+            photo_url: img.url,
+            photo_path: img.path,
+            angle: img.angle,
+            embedding: Array.from(descriptor),
+          };
+        } catch (error) {
+          console.error(`Error processing ${img.angle}:`, error);
+          return null;
+        }
+      });
+
+      const faceDataResults = await Promise.all(faceDataPromises);
+      const validFaceData = faceDataResults.filter(Boolean);
+
+      if (validFaceData.length === 0) {
+        throw new Error('No faces detected in any photos. Please retake with clear face visibility.');
+      }
+
       const { error: dbError } = await (supabase as any)
         .from("faces_data")
-        .insert(
-          uploadedImages.map((img) => ({
-            user_id: user.id,
-            photo_url: img?.url,
-            angle: img?.angle,
-          }))
-        );
+        .insert(validFaceData);
 
       if (dbError) throw dbError;
+
+      // Update student's face_registered status
+      const { data: studentData } = await supabase
+        .from('students')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (studentData) {
+        await supabase
+          .from('students')
+          .update({ face_registered: true })
+          .eq('id', studentData.id);
+      }
 
       toast.success("Face registration completed!");
       navigate("/");
@@ -156,8 +202,8 @@ export default function RegisterFace() {
                   <h3 className="font-semibold">{capture.label}</h3>
                   {capture.captured && (
                     <div className="flex items-center gap-1 text-success">
-                      <Check className="h-4 w-4" />
-                      <span className="text-sm">Captured</span>
+                      <TickCircle size={18} variant="Bold" />
+                      <span className="text-sm font-medium">Captured</span>
                     </div>
                   )}
                 </div>
